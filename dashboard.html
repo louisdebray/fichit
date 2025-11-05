@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>FichIt - Tableau de bord</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="Votre espace personnel FichIt avec vos fiches générées" name="description" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <style>
+      :root { --accent:#ff385c; --accent-hover:#e33251; }
+      body { font-family:'Plus Jakarta Sans', sans-serif; background:linear-gradient(135deg,#fff8f9 0%,#ffe3ea 100%); min-height:100vh; display:flex; flex-direction:column; }
+      .navbar { background:#fff; height:64px; display:flex; align-items:center; }
+      .navbar-brand img { height:40px; display:block; }
+      .btn-primary { background-color:var(--accent)!important; border-color:var(--accent)!important; color:#fff!important; }
+      .btn-primary:hover { background-color:var(--accent-hover)!important; }
+      .dashboard-container { max-width:1100px; margin:6rem auto 3rem; background:#fff; border-radius:16px; padding:2.5rem; box-shadow:0 8px 30px rgba(0,0,0,.08); width:100%; }
+      .dashboard-header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:2rem; }
+      .dashboard-header h2 { color:var(--accent); font-weight:700; margin-bottom:1rem; }
+      .new-fiche-btn { display:flex; align-items:center; gap:8px; background-color:var(--accent); border:none; color:#fff; border-radius:999px; padding:.6rem 1.4rem; font-weight:600; font-size:1rem; }
+      .new-fiche-btn:hover { background-color:var(--accent-hover); }
+      .search-bar { position:relative; width:100%; max-width:350px; }
+      .search-bar input { width:100%; border-radius:50px; padding:.6rem 1rem .6rem 2.5rem; border:1px solid #ddd; outline:none; }
+      .search-bar i { position:absolute; top:50%; left:10px; transform:translateY(-50%); color:#aaa; }
+      .fiche-card { border:1px solid #eee; border-radius:12px; padding:1.5rem; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,.05); transition: transform .2s ease, box-shadow .2s ease; height:100%; cursor:pointer; position:relative; }
+      .fiche-card:hover { transform: translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.08);}
+      .fiche-title { color:#333; font-weight:600; margin-bottom:.5rem; }
+      .fiche-date { color:#888; font-size:.9rem; }
+      .logout-btn { border:1px solid var(--accent); color:var(--accent); background:transparent; font-weight:500; border-radius:999px; padding:.45rem 1.2rem; }
+      .logout-btn:hover { background-color:var(--accent); color:#fff; }
+      #userName { color:#444; font-weight:600; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .plan-badge{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--accent); color:var(--accent); background:#fff; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:700; line-height:1; }
+      .plan-badge.premium{ background:var(--accent); color:#fff; border-color:var(--accent); }
+      .plan-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); display:inline-block; }
+      .plan-badge.premium .plan-dot{ background:#fff; }
+      .upgrade-btn { border:1px dashed var(--accent); color:var(--accent); background:transparent; font-weight:600; border-radius:999px; padding:.35rem .9rem; font-size:.9rem; }
+      .upgrade-btn:hover { background:var(--accent); color:#fff; }
+      .site-footer { margin-top:auto; padding:1.25rem 0; text-align:center; color:#777; }
+      .delete-fiche-btn { padding: 0.25rem 0.5rem; font-size: 0.8rem; border: none; background: transparent; color: #dc3545; border-radius: 4px; opacity: 0.7; transition: opacity 0.2s ease, background 0.2s ease; }
+      .delete-fiche-btn:hover { opacity: 1; background: rgba(220, 53, 69, 0.1); }
+      .badge-pending { display:inline-flex; align-items:center; gap:8px; border:1px dashed #ff9800; color:#b36b00; background:#fff7e6; padding:4px 10px; border-radius:999px; font-size:.8rem; font-weight:600; }
+      .open-btn { border:1px solid #ddd; background:#f8f9fa; font-size:.9rem; border-radius:999px; padding:.35rem .8rem; color:#333; }
+      .open-btn:hover { background:#eef1f4; }
+      .pulse-ready { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); animation: pulse 1.2s ease-out 4; border-color:#4caf50 !important; }
+      @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76,175,80,0.6); } 100% { box-shadow: 0 0 0 24px rgba(76,175,80,0); } }
+      #planBadgeText.placeholder { opacity:.55; }
+
+      /* ===== Mobile-only ===== */
+      @media (max-width: 576px) {
+        body { padding-top: 56px; }
+        .navbar { height:56px; padding-left:12px; padding-right:12px; }
+        .navbar-brand img { height:32px; }
+        #userName, #planBadge, #upgradeBtn, #cancelBtn, #logoutBtn { display:none !important; }
+
+        .dashboard-container { margin:4.25rem 12px 1.25rem; padding:1.25rem; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,.07); }
+        .dashboard-header { flex-direction:column; align-items:stretch; gap:.75rem; margin-bottom:1.25rem; }
+        .dashboard-header h2 { font-size:1.25rem; margin:0 0 .25rem 0; text-align:left; }
+        .dashboard-header .d-flex { width:100%; gap:.5rem !important; }
+        .new-fiche-btn { width:100%; justify-content:center; padding:.7rem 1rem; font-size:1rem; border-radius:999px; }
+        .search-bar { max-width:100%; width:100%; }
+        .search-bar input { padding:.7rem 1rem .7rem 2.25rem; font-size:1rem; border-radius:999px; }
+        .search-bar i { left:12px; }
+        #ficheList .col-md-6, #ficheList .col-lg-4 { width:100%; flex:0 0 100%; }
+        .fiche-card { padding:1.1rem 1rem; border-radius:12px; box-shadow:0 3px 14px rgba(0,0,0,.06); }
+        .fiche-title { font-size:1.05rem; }
+        .fiche-date { font-size:.9rem; }
+        .open-btn { padding:.45rem .9rem; font-size:.9rem; border-radius:999px; }
+        .delete-fiche-btn { padding:.35rem .5rem; font-size:.85rem; }
+        .badge-pending { font-size:.8rem; padding:.35rem .7rem; }
+        .site-footer { padding:.9rem 0; font-size:.9rem; }
+      }
+      @media (max-width: 360px) {
+        .navbar { padding-left:8px; padding-right:8px; }
+        .dashboard-container { margin:4rem 10px 1rem; padding:1rem; }
+        .new-fiche-btn { padding:.65rem .9rem; font-size:.95rem; }
+        .search-bar input { padding:.6rem .9rem .6rem 2rem; font-size:.95rem; }
+      }
+
+      /* ===== Drawer mobile ===== */
+      .avatar{width:34px;height:34px;border-radius:50%;background:#ffe3ea;color:#a41230;font-weight:700;display:flex;align-items:center;justify-content:center;}
+      .drawer-plan{font-size:.8rem;font-weight:700;}
+      .mobile-drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.25); display:none; z-index:1051; }
+      .mobile-drawer{ position:fixed; top:0; right:-320px; width:280px; height:100vh; background:#fff; box-shadow:-10px 0 30px rgba(0,0,0,.12); z-index:1052; padding:18px; transition:right .2s ease; display:flex; flex-direction:column; gap:12px; }
+      .mobile-drawer.open{ right:0; }
+      .mobile-drawer-backdrop.show{ display:block; }
+      @media (min-width: 993px){ .navbar-toggler{ display:none !important; } }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-light px-4">
+      <a href="index.html" class="navbar-brand p-0"><img src="img/logo.png" alt="FichIt Logo"></a>
+
+      <!-- Burger mobile -->
+      <button class="navbar-toggler d-lg-none ms-auto" type="button" id="mobileMenuBtn" aria-label="Menu">
+        <span class="fa fa-bars"></span>
+      </button>
+
+      <div class="ms-auto me-3 d-flex align-items-center gap-3 flex-wrap">
+        <span id="userName" class="d-none d-sm-inline"></span>
+        <span id="planBadge" class="plan-badge"><span class="plan-dot"></span><span id="planBadgeText" class="placeholder">…</span></span>
+        <a id="upgradeBtn" class="upgrade-btn d-none" href="https://buy.stripe.com/bJedRb2Y65wS0RDgbA1Nu00" rel="noopener">Mettre à niveau</a>
+        <button id="cancelBtn" class="upgrade-btn d-none">Se désabonner</button>
+        <button id="logoutBtn" class="logout-btn">Se déconnecter</button>
+      </div>
+    </nav>
+
+    <!-- Drawer mobile -->
+    <div class="mobile-drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="mobile-drawer" id="drawer">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <div id="drawerAvatar" class="avatar">U</div>
+          <div class="d-flex flex-column">
+            <div id="drawerName" class="fw-semibold">Utilisateur</div>
+            <div id="drawerPlan" class="drawer-plan text-muted">Gratuit</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-light" id="closeDrawer" aria-label="Fermer"><i class="fas fa-times"></i></button>
+      </div>
+      <hr class="mt-0">
+      <div id="drawerActions" class="d-grid gap-2"></div>
+    </div>
+
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h2>Tableau de bord</h2>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <button class="new-fiche-btn" id="newFicheBtn"><i class="fas fa-plus"></i> Nouvelle fiche</button>
+          <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Rechercher une fiche" /></div>
+        </div>
+      </div>
+      <div id="ficheList" class="row g-3 text-center">
+        <p class="text-muted">Chargement des fiches...</p>
+      </div>
+    </div>
+
+    <footer class="site-footer">© 2025 FichIt – Tous droits réservés.</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Script unique (Firebase + Dashboard + Drawer) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+      import { getAuth, onAuthStateChanged, onIdTokenChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey:"AIzaSyCUYgbDvFb4FjaMrsL-2-wVjlME5iODVOs",
+        authDomain:"fichit-64628.firebaseapp.com",
+        projectId:"fichit-64628",
+        storageBucket:"fichit-64628.appspot.com"
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // Refs UI
+      const ficheList = document.getElementById("ficheList");
+      const searchInput = document.getElementById("searchInput");
+      const userNameEl = document.getElementById("userName");
+      const planBadge = document.getElementById("planBadge");
+      const planBadgeText = document.getElementById("planBadgeText");
+      const upgradeBtn = document.getElementById("upgradeBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      // Drawer refs
+      const drawer = document.getElementById('drawer');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const drawerActions = document.getElementById('drawerActions');
+      const drawerAvatar = document.getElementById('drawerAvatar');
+      const drawerName = document.getElementById('drawerName');
+      const drawerPlan = document.getElementById('drawerPlan');
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const closeDrawer = document.getElementById('closeDrawer');
+
+      const openDrawer = () => { drawer.classList.add('open'); drawerBackdrop.classList.add('show'); };
+      const closeDrawerFn = () => { drawer.classList.remove('open'); drawerBackdrop.classList.remove('show'); };
+
+      mobileMenuBtn?.addEventListener('click', openDrawer);
+      closeDrawer?.addEventListener('click', closeDrawerFn);
+      drawerBackdrop?.addEventListener('click', closeDrawerFn);
+
+      let fiches = [];
+      let pollHandle = null;
+      let pollAttempts = 0;
+      const MAX_POLL_ATTEMPTS = 120;
+      const urlParams = new URLSearchParams(location.search);
+      const targetFicheId = urlParams.get('ficheId');
+      let hasAutoOpened = false;
+      let currentUserId = null;
+
+      function fmtDate(iso) {
+        const d = new Date(iso || 0);
+        return isNaN(d.getTime()) ? "" : d.toLocaleString("fr-FR", { dateStyle:"medium", timeStyle:"short" });
+      }
+
+      function renderFiches(data) {
+        ficheList.innerHTML = "";
+        if (!data.length) {
+          ficheList.innerHTML = "<p class='text-muted'>Aucune fiche trouvée.</p>";
+          return;
+        }
+        const frag = document.createDocumentFragment();
+
+        data.forEach((fiche) => {
+          const col = document.createElement("div");
+          col.className = "col-md-6 col-lg-4";
+          const hasHtml = !!fiche.htmlUrl;
+
+          col.innerHTML = `
+            <div class="fiche-card" data-id="${fiche.ficheId || ""}" ${hasHtml ? `data-url="${fiche.htmlUrl}"` : ""}>
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="fiche-title mb-0">${fiche.titre ? fiche.titre : "Sans titre"}</h5>
+                <button class="btn btn-sm btn-outline-danger delete-fiche-btn" data-id="${fiche.ficheId ? fiche.ficheId : ""}" title="Supprimer">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+              <p class="fiche-date mb-3">${fmtDate(fiche.date)}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                ${
+                  hasHtml
+                  ? `<a class="open-btn" href="${fiche.htmlUrl}" target="_blank" rel="noopener">Ouvrir la fiche</a>`
+                  : `<span class="badge-pending"><i class="fas fa-spinner fa-spin"></i> En cours de génération…</span>`
+                }
+              </div>
+            </div>
+          `;
+          frag.appendChild(col);
+        });
+
+        ficheList.appendChild(frag);
+
+        document.querySelectorAll('.fiche-card[data-url]').forEach((card) => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-fiche-btn')) { return; }
+            const url = card.getAttribute('data-url');
+            if (url) { window.open(url, '_blank', 'noopener'); }
+          });
+        });
+
+        document.querySelectorAll('.delete-fiche-btn').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const ficheId = e.currentTarget.getAttribute('data-id');
+            if (ficheId && confirm("Voulez-vous vraiment supprimer cette fiche ?")) {
+              try {
+                const r = await fetch("https://fichit-api.vercel.app/api/fiche?userId=" + encodeURIComponent(currentUserId) + "&ficheId=" + encodeURIComponent(ficheId), { method: 'DELETE' });
+                if (!r.ok) { throw new Error('delete failed'); }
+                await loadFiches(currentUserId, true);
+              } catch (error) {
+                alert("Erreur lors de la suppression : " + (error && error.message ? error.message : "inconnue"));
+              }
+            }
+          });
+        });
+
+        document.querySelectorAll('.fiche-card[data-url]:not(.marked-ready)').forEach((card) => {
+          card.classList.add('marked-ready', 'pulse-ready');
+          setTimeout(() => { card.classList.remove('pulse-ready'); }, 1600);
+        });
+      }
+
+      function maybeAutoOpenWhenReady() {
+        if (hasAutoOpened) { return; }
+
+        if (targetFicheId) {
+          const target = fiches.find((f) => f.ficheId === targetFicheId);
+          if (target && target.htmlUrl) {
+            hasAutoOpened = true;
+            window.open(target.htmlUrl, '_blank', 'noopener');
+            history.replaceState(null, "", location.pathname);
+            return;
+          }
+        }
+
+        const firstReady = fiches.find((f) => !!f.htmlUrl);
+        if (firstReady) {
+          hasAutoOpened = true;
+          window.open(firstReady.htmlUrl, '_blank', 'noopener');
+        }
+      }
+
+      function startPollingIfNeeded() {
+        if (document.hidden) { return; }
+        const hasPending = fiches.some((f) => f.status !== 'ready' || !f.htmlUrl);
+        if (!hasPending) {
+          if (pollHandle) { clearInterval(pollHandle); pollHandle = null; }
+          pollAttempts = 0;
+          return;
+        }
+        if (pollHandle) { return; }
+
+        pollAttempts = 0;
+        pollHandle = setInterval(async () => {
+          if (document.hidden) { return; }
+          pollAttempts += 1;
+          try {
+            await loadFiches(currentUserId, true);
+            maybeAutoOpenWhenReady();
+          } catch (e) {}
+          if (pollAttempts >= MAX_POLL_ATTEMPTS) {
+            clearInterval(pollHandle);
+            pollHandle = null;
+          }
+        }, 3000);
+      }
+
+      function applySearchFilter() {
+        const q = (searchInput.value || "").toLowerCase();
+        const filtered = fiches.filter((f) => ((f.titre || "").toLowerCase().indexOf(q) !== -1));
+        renderFiches(filtered);
+      }
+      searchInput.addEventListener("input", applySearchFilter);
+
+      async function loadFiches(uid, keepPolling) {
+        const r = await fetch("https://fichit-api.vercel.app/api/list-fiches?userId=" + encodeURIComponent(uid));
+        const data = await r.json();
+        fiches = (data && data.fiches) ? data.fiches : [];
+        applySearchFilter();
+        if (!keepPolling) {
+          startPollingIfNeeded();
+          maybeAutoOpenWhenReady();
+        }
+      }
+
+      function setPlanBadgeUI(isPremium) {
+        planBadge.classList.toggle('premium', !!isPremium);
+        planBadgeText.textContent = isPremium ? 'Premium' : 'Gratuit';
+        planBadgeText.classList.remove('placeholder');
+        upgradeBtn.classList.toggle('d-none', !!isPremium);
+        cancelBtn.classList.toggle('d-none', !isPremium);
+        // Drawer plan text
+        drawerPlan.textContent = isPremium ? 'Premium' : 'Gratuit';
+      }
+
+      async function resolvePlanFast(user) {
+        try { const t1 = await user.getIdTokenResult(false); if (t1 && t1.claims) { setPlanBadgeUI(!!t1.claims.premium); return; } } catch {}
+        try { const t2 = await user.getIdTokenResult(true);  if (t2 && t2.claims) { setPlanBadgeUI(!!t2.claims.premium); return; } } catch {}
+        setPlanBadgeUI(false);
+      }
+
+      function setDrawerLoggedOut(){
+        drawerAvatar.textContent='U';
+        drawerName.textContent='Invité';
+        drawerPlan.textContent='Gratuit';
+        drawerActions.innerHTML = `
+          <a class="btn btn-primary w-100" href="login.html?tab=register"><i class="fas fa-user-plus me-1"></i> Créer un compte</a>
+          <a class="btn btn-light w-100" href="login.html?tab=login"><i class="fas fa-sign-in-alt me-1"></i> Se connecter</a>
+        `;
+      }
+
+      function setDrawerLoggedIn(user){
+        const name = user.displayName || user.email || 'Utilisateur';
+        const initial = (name && name.trim() ? name.trim()[0] : 'U').toUpperCase();
+        drawerAvatar.textContent = initial;
+        drawerName.textContent = name;
+        drawerActions.innerHTML = `
+          <a class="btn btn-primary w-100" href="dashboard.html"><i class="fas fa-chart-line me-1"></i> Mon tableau de bord</a>
+          <a class="btn btn-light w-100" href="upload.html"><i class="fas fa-file-upload me-1"></i> Déposer un PDF</a>
+          <button id="drawerLogout" class="btn btn-outline-danger w-100"><i class="fas fa-sign-out-alt me-1"></i> Se déconnecter</button>
+        `;
+        const drawerLogout = document.getElementById('drawerLogout');
+        drawerLogout?.addEventListener('click', () => {
+          const b = drawerLogout; b.disabled = true; b.textContent = 'Déconnexion…';
+          signOut(auth).finally(() => { location.href = 'login.html'; });
+        });
+      }
+
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) { startPollingIfNeeded(); } });
+
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          setDrawerLoggedOut();
+          location.href = 'login.html';
+          return;
+        }
+        currentUserId = user.uid;
+        userNameEl.textContent = user.displayName || user.email || 'Utilisateur';
+        userNameEl.classList.remove('d-none');
+
+        setDrawerLoggedIn(user);
+        await resolvePlanFast(user);
+        onIdTokenChanged(auth, (u) => { if (u) { resolvePlanFast(u); } });
+
+        await loadFiches(currentUserId, false);
+      });
+
+      document.getElementById('newFicheBtn').addEventListener('click', () => { window.location.href = 'upload.html'; });
+      logoutBtn.addEventListener('click', () => {
+        logoutBtn.textContent = 'Déconnexion...';
+        logoutBtn.disabled = true;
+        signOut(auth).then(() => { window.location.href = 'login.html'; });
+      });
+    </script>
+  </body>
+</html>
