@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>FichIt - Tableau de bord</title>
+
+    <!-- Favicon -->
+    <link id="fav32" rel="icon" type="image/png" href="img/logof.png?v=5">
+    <link id="favApple" rel="apple-touch-icon" href="img/logof.png?v=5">
+    <link id="favShortcut" rel="shortcut icon" href="img/logof.png?v=5">
+
+    <!-- Notch iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ff385c">
+    <meta content="Votre espace personnel FichIt avec vos fiches générées" name="description" />
+
+    <!-- Fonts & CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+
+    <style>
+      :root{
+        --accent:#ff385c; --accent-hover:#e33251;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --nav-h-desk: 64px; --nav-h-mob: 56px; --nav-h: var(--nav-h-desk);
+      }
+
+      html, body { margin:0; }
+      body {
+        font-family:'Plus Jakarta Sans', sans-serif;
+        background:linear-gradient(135deg,#fff8f9 0%,#ffe3ea 100%);
+        min-height:100vh; display:flex; flex-direction:column;
+        padding-top: calc(var(--nav-h) + var(--safe-top));
+      }
+
+      /* NAVBAR */
+      .navbar { position:fixed; top:0; left:0; right:0; height:var(--nav-h); background:#fff;
+        display:flex; align-items:center; z-index:1040; padding:0 16px; box-shadow:none; }
+      .navbar::before{ content:""; position:fixed; top:0; left:0; right:0; height:var(--safe-top);
+        background:#fff; z-index:1039; pointer-events:none; }
+      .navbar-brand{ display:flex; align-items:center; margin:0; padding:0; line-height:1; }
+      .navbar-brand img{ height:40px; width:auto; display:block; }
+      #mobileMenuBtn{ border:0; background:transparent; font-size:1.25rem; line-height:1; margin-left:auto; }
+
+      /* UI */
+      .btn-primary{ background-color:var(--accent)!important; border-color:var(--accent)!important; color:#fff!important; }
+      .btn-primary:hover{ background-color:var(--accent-hover)!important; }
+      .logout-btn{ border:1px solid var(--accent); color:var(--accent); background:transparent; font-weight:500; border-radius:999px; padding:.45rem 1.2rem; }
+      .logout-btn:hover{ background-color:var(--accent); color:#fff; }
+
+      /* DASHBOARD CARD */
+      .dashboard-container{
+        max-width:1100px;
+        margin: calc(var(--nav-h) + 1.5rem) auto 3rem;
+        background:#fff; border-radius:16px; padding:2.5rem;
+        box-shadow:0 8px 30px rgba(0,0,0,.08); width:100%;
+      }
+      .dashboard-header{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:2rem; }
+      .dashboard-header h2{ color:var(--accent); font-weight:700; margin-bottom:1rem; }
+
+      .new-fiche-btn{ display:flex; align-items:center; gap:8px; background:var(--accent); border:none; color:#fff; border-radius:999px; padding:.6rem 1.4rem; font-weight:600; font-size:1rem; }
+      .new-fiche-btn:hover{ background:var(--accent-hover); }
+
+      .search-bar{ position:relative; width:100%; max-width:350px; }
+      .search-bar input{ width:100%; border-radius:50px; padding:.6rem 1rem .6rem 2.5rem; border:1px solid #ddd; outline:none; }
+      .search-bar i{ position:absolute; top:50%; left:10px; transform:translateY(-50%); color:#aaa; }
+
+      .fiche-card{ border:1px solid #eee; border-radius:12px; padding:1.5rem; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,.05);
+        transition:transform .2s ease, box-shadow .2s ease; height:100%; cursor:pointer; position:relative; }
+      .fiche-card:hover{ transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,.08);}
+      .fiche-title{ color:#333; font-weight:600; margin-bottom:.5rem; }
+      .fiche-date{ color:#888; font-size:.9rem; }
+
+      .delete-fiche-btn{ padding:.25rem .5rem; font-size:.8rem; border:none; background:transparent; color:#dc3545; border-radius:4px; opacity:.7; transition:opacity .2s, background .2s; }
+      .delete-fiche-btn:hover{ opacity:1; background:rgba(220,53,69,.1); }
+
+      .badge-pending{ display:inline-flex; align-items:center; gap:8px; border:1px dashed #ff9800; color:#b36b00; background:#fff7e6; padding:4px 10px; border-radius:999px; font-size:.8rem; font-weight:600; }
+      .open-btn{ border:1px solid #ddd; background:#f8f9fa; font-size:.9rem; border-radius:999px; padding:.35rem .8rem; color:#333; }
+      .open-btn:hover{ background:#eef1f4; }
+
+      .pulse-ready{ box-shadow:0 0 0 0 rgba(76,175,80,.7); animation:pulse 1.2s ease-out 4; border-color:#4caf50!important; }
+      @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(76,175,80,.6);} 100%{ box-shadow:0 0 0 24px rgba(76,175,80,0);} }
+
+      #userName{ color:#444; font-weight:600; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+      .plan-badge{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--accent); color:var(--accent); background:#fff; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:700; line-height:1; }
+      .plan-badge.premium{ background:var(--accent); color:#fff; border-color:var(--accent); }
+      .plan-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); display:inline-block; }
+      .plan-badge.premium .plan-dot{ background:#fff; }
+      .upgrade-btn{ border:1px dashed var(--accent); color:var(--accent); background:transparent; font-weight:600; border-radius:999px; padding:.35rem .9rem; font-size:.9rem; }
+      .upgrade-btn:hover{ background:var(--accent); color:#fff; }
+
+      .site-footer{ margin-top:auto; padding: calc(1.25rem + var(--safe-bottom)) 0 1.25rem; text-align:center; color:#777; }
+
+      /* Drawer mobile */
+      .avatar{width:34px;height:34px;border-radius:50%;background:#ffe3ea;color:#a41230;font-weight:700;display:flex;align-items:center;justify-content:center;}
+      .drawer-badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:.85rem; font-weight:700; line-height:1; border:1px solid var(--accent); color:var(--accent); }
+      .drawer-badge.premium{ background:var(--accent); color:#fff; }
+      .drawer-dot{ width:8px;height:8px;border-radius:50%; background:currentColor; }
+      .mobile-drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.28); display:none; z-index:1051; }
+      .mobile-drawer{ position:fixed; top:calc(var(--safe-top)); right:-320px; width:280px; height:calc(100vh - var(--safe-top)); background:#fff; box-shadow:-10px 0 30px rgba(0,0,0,.12); z-index:1052; padding:18px; transition:right .2s ease; display:flex; flex-direction:column; gap:12px; }
+      .mobile-drawer.open{ right:0; }
+      .mobile-drawer-backdrop.show{ display:block; }
+
+      /* MOBILE */
+      @media (max-width:992px){
+        :root{ --nav-h: var(--nav-h-mob); }
+        .navbar{ height:var(--nav-h-mob); padding:0 12px; }
+        .navbar-brand img{ height:32px; }
+        /* Burger VRAIMENT à droite */
+        #mobileMenuBtn{ position:absolute; right:12px; top:calc(var(--safe-top) + var(--nav-h-mob)/2); transform:translateY(-50%); margin-left:0; }
+        /* Carte moins large et centrée (≈92vw) */
+        .dashboard-container{
+          width:min(92vw, 560px);
+          margin: calc(var(--nav-h) + 0.75rem) auto 1.25rem;
+          padding:1.25rem; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,.07);
+        }
+        .dashboard-header{ flex-direction:column; align-items:stretch; gap:.75rem; margin-bottom:1.25rem; }
+        .dashboard-header h2{ font-size:1.25rem; margin:0 0 .25rem 0; text-align:left; }
+        .dashboard-header .d-flex{ width:100%; gap:.5rem!important; }
+        .new-fiche-btn{ width:100%; justify-content:center; padding:.7rem 1rem; font-size:1rem; border-radius:999px; }
+        .search-bar{ max-width:100%; width:100%; }
+        .search-bar input{ padding:.7rem 1rem .7rem 2.25rem; font-size:1rem; border-radius:999px; }
+        .search-bar i{ left:12px; }
+        #userName, #planBadge, #upgradeBtn, #cancelBtn, #logoutBtn{ display:none!important; }
+      }
+
+      @media (max-width:360px){
+        .dashboard-container{ width:min(92vw, 520px); margin: calc(var(--nav-h) + 0.5rem) auto 1rem; padding:1rem; }
+        .new-fiche-btn{ padding:.65rem .9rem; font-size:.95rem; }
+        .search-bar input{ padding:.6rem .9rem .6rem 2rem; font-size:.95rem; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-light">
+      <a href="index.html" class="navbar-brand"><img src="img/logo.png" alt="FichIt Logo"></a>
+      <button class="navbar-toggler d-lg-none" id="mobileMenuBtn" aria-label="Menu"><span class="fa fa-bars"></span></button>
+      <div class="ms-auto me-3 d-flex align-items-center gap-3 flex-wrap">
+        <span id="userName" class="d-none d-sm-inline"></span>
+        <span id="planBadge" class="plan-badge"><span class="plan-dot"></span><span id="planBadgeText" class="placeholder">…</span></span>
+        <a id="upgradeBtn" class="upgrade-btn d-none" href="https://buy.stripe.com/bJedRb2Y65wS0RDgbA1Nu00" rel="noopener">Mettre à niveau</a>
+        <button id="cancelBtn" class="upgrade-btn d-none">Se désabonner</button>
+        <button id="logoutBtn" class="logout-btn">Se déconnecter</button>
+      </div>
+    </nav>
+
+    <!-- Drawer -->
+    <div class="mobile-drawer-backdrop" id="drawerBackdrop"></div>
+    <div class="mobile-drawer" id="drawer" aria-hidden="true">
+      <div class="d-flex align-items-center justify-content-between mb-2" style="padding-top:6px">
+        <div class="d-flex align-items-center gap-2">
+          <div id="drawerAvatar" class="avatar">U</div>
+          <div class="d-flex flex-column">
+            <div id="drawerName" class="fw-semibold">Utilisateur</div>
+            <div><span id="drawerBadge" class="drawer-badge"><span class="drawer-dot"></span><span id="drawerBadgeText">Gratuit</span></span></div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-light" id="closeDrawer" aria-label="Fermer"><i class="fas fa-times"></i></button>
+      </div>
+      <hr class="mt-0">
+      <div id="drawerActions" class="d-grid gap-2"></div>
+    </div>
+
+    <!-- Contenu -->
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h2>Tableau de bord</h2>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <button class="new-fiche-btn" id="newFicheBtn"><i class="fas fa-plus"></i> Nouvelle fiche</button>
+          <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Rechercher une fiche" /></div>
+        </div>
+      </div>
+      <div id="ficheList" class="row g-3 text-center">
+        <p class="text-muted">Chargement des fiches...</p>
+      </div>
+    </div>
+
+    <footer class="site-footer">© 2025 FichIt – Tous droits réservés.</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JS (inchangé sauf UI) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+      import { getAuth, onAuthStateChanged, onIdTokenChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+      const STRIPE_PORTAL_URL = "https://billing.stripe.com/p/login/bJedRb2Y65wS0RDgbA1Nu00";
+      const firebaseConfig = { apiKey:"AIzaSyCUYgbDvFb4FjaMrsL-2-wVjlME5iODVOs", authDomain:"fichit-64628.firebaseapp.com", projectId:"fichit-64628", storageBucket:"fichit-64628.appspot.com" };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+      const onLoginPage = /\/login\.html$/i.test(location.pathname);
+
+      const ficheList = document.getElementById("ficheList");
+      const searchInput = document.getElementById("searchInput");
+      const userNameEl = document.getElementById("userName");
+      const planBadge = document.getElementById("planBadge");
+      const planBadgeText = document.getElementById("planBadgeText");
+      const upgradeBtn = document.getElementById("upgradeBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      const drawer = document.getElementById('drawer');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const drawerActions = document.getElementById('drawerActions');
+      const drawerAvatar = document.getElementById('drawerAvatar');
+      const drawerName = document.getElementById('drawerName');
+      const drawerBadge = document.getElementById('drawerBadge');
+      const drawerBadgeText = document.getElementById('drawerBadgeText');
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const closeDrawer = document.getElementById('closeDrawer');
+
+      const openDrawer = () => { drawer.classList.add('open'); drawerBackdrop.classList.add('show'); drawer.setAttribute('aria-hidden','false'); };
+      const closeDrawerFn = () => { drawer.classList.remove('open'); drawerBackdrop.classList.remove('show'); drawer.setAttribute('aria-hidden','true'); };
+      mobileMenuBtn?.addEventListener('click', openDrawer);
+      closeDrawer?.addEventListener('click', closeDrawerFn);
+      drawerBackdrop?.addEventListener('click', closeDrawerFn);
+
+      let fiches = [];
+      let pollHandle = null;
+      let pollAttempts = 0;
+      const MAX_POLL_ATTEMPTS = 120;
+      const urlParams = new URLSearchParams(location.search);
+      const targetFicheId = urlParams.get('ficheId');
+      let hasAutoOpened = false;
+      let currentUserId = null;
+
+      function fmtDate(iso){ const d=new Date(iso||0); return isNaN(d.getTime()) ? "" : d.toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}); }
+
+      function renderFiches(data){
+        ficheList.innerHTML = data.length ? "" : "<p class='text-muted'>Aucune fiche trouvée.</p>";
+        const frag = document.createDocumentFragment();
+        data.forEach((fiche) => {
+          const col = document.createElement("div");
+          col.className = "col-md-6 col-lg-4";
+          const hasHtml = !!fiche.htmlUrl;
+          col.innerHTML = `
+            <div class="fiche-card" data-id="${fiche.ficheId||""}" ${hasHtml?`data-url="${fiche.htmlUrl}"`:""}>
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="fiche-title mb-0">${fiche.titre || "Sans titre"}</h5>
+                <button class="btn btn-sm btn-outline-danger delete-fiche-btn" data-id="${fiche.ficheId||""}" title="Supprimer">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+              <p class="fiche-date mb-3">${fmtDate(fiche.date)}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                ${ hasHtml ? `<a class="open-btn" href="${fiche.htmlUrl}" target="_blank" rel="noopener">Ouvrir la fiche</a>`
+                           : `<span class="badge-pending"><i class="fas fa-spinner fa-spin"></i> En cours de génération…</span>` }
+              </div>
+            </div>`;
+          frag.appendChild(col);
+        });
+        ficheList.appendChild(frag);
+
+        document.querySelectorAll('.fiche-card[data-url]').forEach((card) => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-fiche-btn')) return;
+            const url = card.getAttribute('data-url'); if (url) window.open(url, '_blank', 'noopener');
+          });
+        });
+
+        document.querySelectorAll('.delete-fiche-btn').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const ficheId = e.currentTarget.getAttribute('data-id');
+            if (ficheId && confirm("Voulez-vous vraiment supprimer cette fiche ?")) {
+              try {
+                const r = await fetch(`https://fichit-api.vercel.app/api/fiche?userId=${encodeURIComponent(currentUserId)}&ficheId=${encodeURIComponent(ficheId)}`, { method:'DELETE' });
+                if (!r.ok) throw new Error('delete failed');
+                await loadFiches(currentUserId, true);
+              } catch (error) { alert("Erreur lors de la suppression : " + (error?.message || "inconnue")); }
+            }
+          });
+        });
+
+        document.querySelectorAll('.fiche-card[data-url]:not(.marked-ready)').forEach((card) => {
+          card.classList.add('marked-ready','pulse-ready');
+          setTimeout(() => card.classList.remove('pulse-ready'), 1600);
+        });
+      }
+
+      function maybeAutoOpenWhenReady(){
+        if (hasAutoOpened) return;
+        if (targetFicheId){
+          const target = fiches.find((f)=>f.ficheId===targetFicheId);
+          if (target && target.htmlUrl){ hasAutoOpened=true; window.open(target.htmlUrl,'_blank','noopener'); history.replaceState(null,"",location.pathname); return; }
+        }
+        const firstReady = fiches.find((f)=>!!f.htmlUrl);
+        if (firstReady){ hasAutoOpened=true; window.open(firstReady.htmlUrl,'_blank','noopener'); }
+      }
+
+      function startPollingIfNeeded(){
+        if (document.hidden) return;
+        const hasPending = fiches.some((f)=>f.status!=='ready' || !f.htmlUrl);
+        if (!hasPending){ if(pollHandle){clearInterval(pollHandle); pollHandle=null;} pollAttempts=0; return; }
+        if (pollHandle) return;
+        pollAttempts=0;
+        pollHandle=setInterval(async ()=>{
+          if (document.hidden) return;
+          pollAttempts++;
+          try{ await loadFiches(currentUserId,true); maybeAutoOpenWhenReady(); }catch{}
+          if (pollAttempts>=MAX_POLL_ATTEMPTS){ clearInterval(pollHandle); pollHandle=null; }
+        },3000);
+      }
+
+      function applySearchFilter(){
+        const q=(searchInput.value||"").toLowerCase();
+        const filtered=fiches.filter((f)=>(f.titre||"").toLowerCase().includes(q));
+        renderFiches(filtered);
+      }
+      searchInput.addEventListener("input", applySearchFilter);
+
+      async function loadFiches(uid, keepPolling=false){
+        const r=await fetch(`https://fichit-api.vercel.app/api/list-fiches?userId=${encodeURIComponent(uid)}`);
+        const data=await r.json();
+        fiches=(data&&data.fiches)||[];
+        applySearchFilter();
+        if (!keepPolling){ startPollingIfNeeded(); maybeAutoOpenWhenReady(); }
+      }
+
+      function setPlanUI(isPremium){
+        planBadge.classList.toggle('premium',!!isPremium);
+        planBadgeText.textContent=isPremium?'Premium':'Gratuit';
+        planBadgeText.classList.remove('placeholder');
+        upgradeBtn.classList.toggle('d-none',!!isPremium);
+        cancelBtn.classList.toggle('d-none',!isPremium);
+
+        drawerBadge.classList.toggle('premium',!!isPremium);
+        drawerBadgeText.textContent=isPremium?'Premium':'Gratuit';
+        const dc=document.getElementById('drawerCancel'); if (dc) dc.classList.toggle('d-none',!isPremium);
+      }
+
+      async function resolvePlanFast(user){
+        try{ const t1=await user.getIdTokenResult(false); if(t1?.claims){ setPlanUI(!!t1.claims.premium); return; } }catch{}
+        try{ const t2=await user.getIdTokenResult(true);  if(t2?.claims){ setPlanUI(!!t2.claims.premium); return; } }catch{}
+        setPlanUI(false);
+      }
+
+      function setDrawerLoggedOut(){
+        drawerAvatar.textContent='U'; drawerName.textContent='Invité';
+        drawerBadge.classList.remove('premium'); drawerBadgeText.textContent='Gratuit';
+        drawerActions.innerHTML=`
+          <a class="btn btn-primary w-100" href="login.html?tab=register"><i class="fas fa-user-plus me-1"></i> Créer un compte</a>
+          <a class="btn btn-light w-100" href="login.html?tab=login"><i class="fas fa-sign-in-alt me-1"></i> Se connecter</a>
+        `;
+      }
+
+      function setDrawerLoggedIn(user){
+        const name=user.displayName||user.email||'Utilisateur';
+        drawerAvatar.textContent=(name?.trim()?.[0]||'U').toUpperCase();
+        drawerName.textContent=name;
+        drawerActions.innerHTML=`
+          <button id="drawerCancel" class="btn btn-outline-secondary w-100 d-none"><i class="fas fa-times-circle me-1"></i> Se désabonner</button>
+          <button id="drawerLogout" class="btn btn-outline-danger w-100"><i class="fas fa-sign-out-alt me-1"></i> Se déconnecter</button>
+        `;
+        document.getElementById('drawerCancel')?.addEventListener('click',()=>{
+          const btn=document.getElementById('cancelBtn');
+          if(btn && !btn.classList.contains('d-none')) btn.click();
+          else alert("Option indisponible pour votre offre actuelle.");
+        });
+        document.getElementById('drawerLogout')?.addEventListener('click',()=>{
+          const b=document.getElementById('drawerLogout'); b.disabled=true; b.textContent='Déconnexion…';
+          signOut(auth).finally(()=>location.href='login.html');
+        });
+      }
+
+      onAuthStateChanged(auth, async (user)=>{
+        if (user){
+          currentUserId=user.uid;
+          userNameEl.textContent=user.displayName||user.email||'Utilisateur';
+          userNameEl.classList.remove('d-none');
+          setDrawerLoggedIn(user);
+          await resolvePlanFast(user);
+          onIdTokenChanged(auth,(u)=>{ if(u) resolvePlanFast(u); });
+          await loadFiches(currentUserId);
+          return;
+        }
+        setDrawerLoggedOut();
+        setTimeout(()=>{
+          if(!auth.currentUser && !onLoginPage){
+            const redirect=encodeURIComponent(location.pathname+location.search);
+            location.href=`login.html?tab=login&redirect=${redirect}`;
+          }
+        },900);
+      });
+
+      document.getElementById('newFicheBtn').addEventListener('click',()=>window.location.href='upload.html');
+      logoutBtn.addEventListener('click',()=>{
+        logoutBtn.textContent='Déconnexion...'; logoutBtn.disabled=true;
+        signOut(auth).then(()=>window.location.href='login.html');
+      });
+
+      function openBillingPortal(){ window.location.href = "https://billing.stripe.com/p/login/bJedRb2Y65wS0RDgbA1Nu00"; }
+      cancelBtn.addEventListener("click", openBillingPortal);
+    </script>
+  </body>
+</html>
