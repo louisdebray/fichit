@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>FichIt - Connexion / Inscription</title>
+
+    <!-- Favicon (compat local + prod) -->
+    <link id="fav32" rel="icon" type="image/png" href="img/logof.png?v=5">
+    <link id="favApple" rel="apple-touch-icon" href="img/logof.png?v=5">
+    <link id="favShortcut" rel="shortcut icon" href="img/logof.png?v=5">
+    <meta name="theme-color" content="#ff385c">
+
+    <!-- IMPORTANT iOS notch + viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <meta content="Se connecter ou créer un compte FichIt" name="description" />
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+      :root{
+        --accent:#ff385c; --accent-hover:#e33251;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --nav-h-desk: 64px; --nav-h-mob: 56px; --nav-h: var(--nav-h-desk);
+      }
+      html, body { height:100%; margin:0; }
+      body {
+        font-family:'Plus Jakarta Sans', sans-serif;
+        background: linear-gradient(135deg, #fff8f9 0%, #ffe3ea 100%);
+        display:flex; flex-direction:column; min-height:100vh;
+        padding-top: calc(var(--nav-h) + var(--safe-top));
+      }
+
+      /* Navbar */
+      .navbar { position:fixed; top:0; left:0; right:0; height:var(--nav-h);
+        background:#fff; display:flex; align-items:center; box-shadow:none; border:none!important; padding:0 16px; z-index:1040; }
+      .navbar::before{ content:""; position:fixed; top:0; left:0; right:0; height:var(--safe-top); background:#fff; z-index:1039; pointer-events:none; }
+      .navbar-brand img { height:40px; display:block; position:relative; top:2px; }
+      @media (max-width: 992px){
+        :root{ --nav-h: var(--nav-h-mob); }
+        .navbar{ height:var(--nav-h-mob); padding:0 12px; }
+        .navbar-brand img { height:32px; top:10px; } /* aligne au burger sur mobile */
+      }
+
+      /* Wrapper centré entre navbar et footer */
+      main.auth-wrapper {
+        flex:1 0 auto;
+        display:flex; align-items:center; justify-content:center;
+        padding: 24px 16px;
+      }
+
+      .auth-card {
+        width:100%; max-width:480px;
+        background:#fff; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.08);
+        padding: 24px;
+      }
+      .auth-title { color: var(--accent); font-weight:800; margin-bottom:.25rem; }
+      .auth-subtitle { color:#666; margin-bottom:1rem; }
+
+      .nav-pills .nav-link { border-radius:999px; font-weight:700; }
+      .nav-pills .nav-link.active{ background: var(--accent); color:#fff; }
+
+      .btn-primary { background-color:var(--accent)!important; border-color:var(--accent)!important; }
+      .btn-primary:hover { background-color:var(--accent-hover)!important; border-color:var(--accent-hover)!important; }
+
+      .btn-google {
+        border:1px solid #ddd; background:#fff; border-radius:999px; padding:.65rem 1rem; width:100%;
+        display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700;
+      }
+      .btn-google img { width:18px; height:18px; }
+
+      .form-control { border-radius:12px; padding:.7rem .9rem; }
+      .form-text { font-size:.9rem; }
+
+      .divider { display:flex; align-items:center; text-align:center; color:#999; font-size:.9rem; margin:10px 0 14px; }
+      .divider::before, .divider::after { content:""; flex:1; border-bottom:1px solid #eee; }
+      .divider:not(:empty)::before { margin-right:.75em; }
+      .divider:not(:empty)::after { margin-left:.75em; }
+
+      /* Spinner plein écran */
+      #spinner { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#fff; opacity:0; visibility:hidden; transition:opacity .2s ease; z-index:9999; }
+      #spinner.show { opacity:1; visibility:visible; }
+
+      /* Footer collé en bas sans espace */
+      .footer { background:#fff; border-top:1px solid #eee; margin-top:auto; padding:8px 0; }
+      .footer small { display:block; text-align:center; color:#777; }
+    </style>
+  </head>
+  <body>
+    <!-- Spinner -->
+    <div id="spinner"><div class="spinner-border text-primary" style="width:3rem;height:3rem"></div></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a href="index.html" class="navbar-brand p-0">
+        <img src="img/logo.png" alt="FichIt Logo">
+      </a>
+    </nav>
+
+    <!-- Auth card -->
+    <main class="auth-wrapper">
+      <div class="auth-card">
+        <div class="text-center mb-3">
+          <h1 class="auth-title h3">Bienvenue sur FichIt</h1>
+          <div class="auth-subtitle">Connecte-toi ou crée un compte</div>
+        </div>
+
+        <ul class="nav nav-pills nav-fill mb-3" id="authTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab">Connexion</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-register" data-bs-toggle="pill" data-bs-target="#pane-register" type="button" role="tab">Inscription</button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- LOGIN -->
+          <div class="tab-pane fade" id="pane-login" role="tabpanel">
+            <button id="googleLogin" class="btn-google mb-3" type="button">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
+              <span>Se connecter avec Google</span>
+            </button>
+
+            <div class="divider">ou</div>
+
+            <form id="loginForm" class="mb-3">
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input id="loginEmail" type="email" class="form-control" placeholder="vous@exemple.com" required />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Mot de passe</label>
+                <input id="loginPassword" type="password" class="form-control" placeholder="••••••••" required />
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <small><a href="#" id="forgotLink">Mot de passe oublié ?</a></small>
+              </div>
+              <button class="btn btn-primary w-100" id="loginBtn" type="submit">Se connecter</button>
+            </form>
+            <div id="loginError" class="text-danger small" role="alert"></div>
+          </div>
+
+          <!-- REGISTER -->
+          <div class="tab-pane fade" id="pane-register" role="tabpanel">
+            <button id="googleRegister" class="btn-google mb-3" type="button">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
+              <span>S’inscrire avec Google</span>
+            </button>
+
+            <div class="divider">ou</div>
+
+            <form id="registerForm" class="mb-3">
+              <div class="mb-3">
+                <label class="form-label">Nom</label>
+                <input id="registerName" type="text" class="form-control" placeholder="Votre nom" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input id="registerEmail" type="email" class="form-control" placeholder="vous@exemple.com" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <input id="registerPassword" type="password" class="form-control" placeholder="Au moins 6 caractères" minlength="6" required />
+              </div>
+              <button class="btn btn-primary w-100" id="registerBtn" type="submit">Créer mon compte</button>
+            </form>
+            <div id="registerError" class="text-danger small" role="alert"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <div class="footer">
+      <small>© 2025 FichIt – Tous droits réservés.</small>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase Auth -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+      import {
+        /* Auth core */
+        initializeAuth,
+        indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence,
+        browserPopupRedirectResolver,
+        /* APIs */
+        onAuthStateChanged,
+        signInWithEmailAndPassword, createUserWithEmailAndPassword,
+        sendPasswordResetEmail, updateProfile,
+        GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult
+      } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+      // --- Firebase ---
+      const firebaseConfig = {
+        apiKey:"AIzaSyCUYgbDvFb4FjaMrsL-2-wVjlME5iODVOs",
+        authDomain:"fichit-64628.firebaseapp.com",
+        projectId:"fichit-64628"
+      };
+      const app = initializeApp(firebaseConfig);
+
+      // ✅ Initialisation robuste (iOS/Safari, webviews)
+      const auth = initializeAuth(app, {
+        persistence: [
+          indexedDBLocalPersistence,
+          browserLocalPersistence,
+          browserSessionPersistence,
+          inMemoryPersistence
+        ],
+        popupRedirectResolver: browserPopupRedirectResolver
+      });
+      auth.useDeviceLanguage?.();
+
+      // --- UI refs ---
+      const spinner = document.getElementById('spinner');
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const loginBtn = document.getElementById('loginBtn');
+      const registerBtn = document.getElementById('registerBtn');
+      const loginError = document.getElementById('loginError');
+      const registerError = document.getElementById('registerError');
+      const forgotLink = document.getElementById('forgotLink');
+      const googleLoginBtn = document.getElementById('googleLogin');
+      const googleRegisterBtn = document.getElementById('googleRegister');
+
+      // --- Query params ---
+      const params = new URLSearchParams(location.search);
+      const startTab = (params.get('tab') || '').toLowerCase();
+      const redirectTo = params.get('redirect') || 'dashboard.html';
+
+      // --- Tabs ---
+      const tabLoginBtn = document.getElementById('tab-login');
+      const tabRegisterBtn = document.getElementById('tab-register');
+      function activate(tabBtn){
+        const target = tabBtn.getAttribute('data-bs-target');
+        document.querySelectorAll('#authTabs .nav-link').forEach(b => b.classList.remove('active'));
+        tabBtn.classList.add('active');
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show','active'));
+        document.querySelector(target).classList.add('show','active');
+      }
+      if (startTab === 'login') activate(tabLoginBtn);
+      else if (startTab === 'register') activate(tabRegisterBtn);
+      else activate(tabLoginBtn);
+
+      // --- Helpers ---
+      const showSpinner = v => spinner.classList.toggle('show', !!v);
+      const mapAuthError = (code) => {
+        const m = {
+          'auth/invalid-email': "Email invalide.",
+          'auth/user-disabled': "Compte désactivé.",
+          'auth/user-not-found': "Aucun compte avec cet email.",
+          'auth/wrong-password': "Mot de passe incorrect.",
+          'auth/email-already-in-use': "Email déjà utilisé.",
+          'auth/weak-password': "Mot de passe trop faible (min. 6 caractères).",
+          'auth/popup-closed-by-user': "Fenêtre fermée avant la fin.",
+          'auth/cancelled-popup-request': "Fenêtre d’authentification déjà ouverte.",
+          'auth/popup-blocked': "Popup bloqué par le navigateur.",
+          'auth/operation-not-allowed': "Connexion Google désactivée dans Firebase (active le provider Google).",
+          'auth/unauthorized-domain': "Domaine non autorisé dans Firebase (ajoute ce domaine dans Authorized domains)."
+        };
+        return m[code] || `Erreur d’authentification (${code || 'inconnue'}). Réessaie.`;
+      };
+
+      // --- Navigation sûre ---
+      let isNavigating = false;
+      const safeNavigate = (url) => { if (isNavigating) return; isNavigating = true; location.href = url; };
+      const goAfterAuth = () => safeNavigate(redirectTo);
+
+      // --- Détection environnements hostiles (forcer redirect) ---
+      function shouldForceRedirect() {
+        const ua = navigator.userAgent || '';
+        const isIOS = /iP(ad|hone|od)/i.test(ua);
+        const isEmbedded = /(FBAN|FBAV|Instagram|Line|Twitter|WebView)/i.test(ua);
+        const isMobileSafari = isIOS && /Safari/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
+        return isEmbedded || isMobileSafari; // on laisse Desktop en popup
+      }
+
+      // --- Consommer getRedirectResult si on revient d'un redirect (mobile/hostile) ---
+      (async () => {
+        showSpinner(true);
+        try {
+          const res = await getRedirectResult(auth);
+          if (res && res.user) {
+            await res.user.getIdToken(true);
+            goAfterAuth();
+            return;
+          }
+        } catch (err) {
+          console.warn('redirectResult error', err);
+          // Affiche sur l’onglet actif (login par défaut)
+          (document.querySelector('.tab-pane.show #registerError') ? registerError : loginError).textContent = mapAuthError(err.code);
+        } finally {
+          if (!isNavigating) showSpinner(false);
+        }
+      })();
+
+      // --- Redirection si déjà connecté ---
+      onAuthStateChanged(auth, (user) => {
+        if (user && !isNavigating) goAfterAuth();
+      });
+
+      // --- LOGIN email/pwd ---
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+        loginBtn.disabled = true;
+        showSpinner(true);
+        try {
+          const email = (document.getElementById('loginEmail').value || '').trim();
+          const pass = document.getElementById('loginPassword').value || '';
+          await signInWithEmailAndPassword(auth, email, pass);
+          goAfterAuth();
+        } catch (err) {
+          loginError.textContent = mapAuthError(err.code);
+        } finally {
+          loginBtn.disabled = false;
+          if (!isNavigating) showSpinner(false);
+        }
+      });
+
+      // --- REGISTER email/pwd ---
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        registerError.textContent = '';
+        registerBtn.disabled = true;
+        showSpinner(true);
+        try {
+          const name = (document.getElementById('registerName').value || '').trim();
+          const email = (document.getElementById('registerEmail').value || '').trim();
+          const pass = document.getElementById('registerPassword').value || '';
+          const cred = await createUserWithEmailAndPassword(auth, email, pass);
+          if (name) { await updateProfile(cred.user, { displayName: name }).catch(()=>{}); }
+          goAfterAuth();
+        } catch (err) {
+          registerError.textContent = mapAuthError(err.code);
+        } finally {
+          registerBtn.disabled = false;
+          if (!isNavigating) showSpinner(false);
+        }
+      });
+
+      // --- RESET PASSWORD ---
+      document.getElementById('forgotLink').addEventListener('click', async (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+        const email = (document.getElementById('loginEmail').value || '').trim();
+        if (!email) { loginError.textContent = "Entre ton email pour recevoir le lien de réinitialisation."; return; }
+        showSpinner(true);
+        try {
+          await sendPasswordResetEmail(auth, email);
+          loginError.classList.remove('text-danger'); loginError.classList.add('text-success');
+          loginError.textContent = "Email de réinitialisation envoyé.";
+        } catch (err) {
+          loginError.classList.remove('text-success'); loginError.classList.add('text-danger');
+          loginError.textContent = mapAuthError(err.code);
+        } finally {
+          showSpinner(false);
+        }
+      });
+
+      // --- GOOGLE (Popup par défaut PC & mobile, Redirect seulement si nécessaire / popup bloqué) ---
+      async function googleFlow(intent) {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        showSpinner(true);
+        try {
+          if (shouldForceRedirect()) {
+            await signInWithRedirect(auth, provider);
+            return; // getRedirectResult gèrera au retour
+          }
+          // Popup d’abord (PC et mobile) :
+          const result = await signInWithPopup(auth, provider);
+          if (result && result.user) {
+            await result.user.getIdToken(true);
+            goAfterAuth();
+            return;
+          }
+        } catch (err) {
+          // Fallback redirect si popup bloqué/annulé
+          if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+            try {
+              await signInWithRedirect(auth, provider);
+              return;
+            } catch (e2) {
+              console.error('Redirect fallback error', e2);
+              (intent === 'register' ? registerError : loginError).textContent = mapAuthError(e2.code);
+            }
+          } else {
+            console.error('Google popup error', err);
+            (intent === 'register' ? registerError : loginError).textContent = mapAuthError(err.code);
+          }
+        } finally {
+          if (!isNavigating) showSpinner(false);
+        }
+      }
+      googleLoginBtn.addEventListener('click', () => googleFlow('login'));
+      googleRegisterBtn.addEventListener('click', () => googleFlow('register'));
+    </script>
+  </body>
+</html>
+
